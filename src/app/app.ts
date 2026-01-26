@@ -4,8 +4,13 @@ import { Component, signal } from '@angular/core';
   selector: 'app-root',
   templateUrl: './app.html',
   standalone: false,
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
 export class App {
-  protected readonly title = signal('cms');
+  // protected readonly title = signal('cms');
+
+  loadedFeature = 'contact';
+  onNavigate(feature: string) {
+    this.loadedFeature = feature;
+  }
 }
