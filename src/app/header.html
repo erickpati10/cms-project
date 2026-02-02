@@ -10,10 +10,13 @@
         <li><a href="#" (click)="onSelect('contact')">Contacts</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li class="dropdown">
+        <li class="dropdown" appDropdown>
           <a href="#" class="dropdown-toggle" role="button">User <span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="#"></a></li>
+            <li><a style="cursor: pointer">Login</a></li>
+            <li><a style="cursor: pointer">Other</a></li>
+            <hr />
+            <li><a style="cursor: pointer">Logout</a></li>
           </ul>
         </li>
       </ul>

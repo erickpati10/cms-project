@@ -18,6 +18,7 @@ import { MessageItem } from './messages/message-item/message-item';
 import { MessageEdit } from './messages/message-edit/message-edit';
 import { MessageList } from './messages/message-list/message-list';
 import { FormsModule } from '@angular/forms';
+import { DropdownDirective } from './dropdown.directive';
 
 @NgModule({
   declarations: [
@@ -35,6 +36,7 @@ import { FormsModule } from '@angular/forms';
     MessageItem,
     MessageEdit,
     MessageList,
+    DropdownDirective,
   ],
   imports: [BrowserModule, RouterModule, CommonModule, FormsModule],
   providers: [provideBrowserGlobalErrorListeners()],
