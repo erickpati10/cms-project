@@ -19,6 +19,7 @@ import { MessageEdit } from './messages/message-edit/message-edit';
 import { MessageList } from './messages/message-list/message-list';
 import { FormsModule } from '@angular/forms';
 import { DropdownDirective } from './dropdown.directive';
+import { MessageService } from './messages/message.service';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,7 @@ import { DropdownDirective } from './dropdown.directive';
     DropdownDirective,
   ],
   imports: [BrowserModule, RouterModule, CommonModule, FormsModule],
-  providers: [provideBrowserGlobalErrorListeners()],
+  providers: [MessageService, provideBrowserGlobalErrorListeners()],
   bootstrap: [App],
 })
 export class AppModule {}
