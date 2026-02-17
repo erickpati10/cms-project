@@ -12,13 +12,14 @@ export class MessageEdit {
   @ViewChild('subjectInput') subjectInputRef: ElementRef;
   @ViewChild('msgTextInput') messageInputRef: ElementRef;
 
-  currentSender: 'Erick Patino';
+  currentSender: string = '2';
 
   constructor(private messageService: MessageService) {}
 
   onSendMessage() {
     const msgSubject = this.subjectInputRef.nativeElement.value;
     const msgText = this.messageInputRef.nativeElement.value;
+    if (!msgText) return;
     const newMessage = new Message('', msgSubject, msgText, this.currentSender);
     this.messageService.addMessage(newMessage);
     this.onClear();
