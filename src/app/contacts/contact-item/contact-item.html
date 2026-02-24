@@ -1,7 +1,29 @@
-<a class="list-group-item clearfix" (click)="onClick()" style="cursor: pointer">
+<!-- <a class="list-group-item clearfix" style="cursor: pointer">
   <div class="pull-left">
-    <h4 class="list-group-item-heading">{{ contact.name }}</h4>
+    <a class="list-group-item clearfix" [routerLink]="[contact.id]" routerLinkActive="active">
+      {{ contact.name }}
+    </a>
   </div>
+  <span class="pull-right">
+    <img
+      [src]="contact.imageUrl"
+      alt="{{ contact.name }}"
+      class="img-responsive"
+      style="max-height: 60px"
+    />
+  </span>
+</a> -->
+
+<a
+  class="list-group-item clearfix"
+  [routerLink]="[contact.id]"
+  routerLinkActive="active"
+  style="cursor: pointer"
+>
+  <div class="pull-left">
+    {{ contact.name }}
+  </div>
+
   <span class="pull-right">
     <img
       [src]="contact.imageUrl"

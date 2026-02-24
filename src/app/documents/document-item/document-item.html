@@ -1,4 +1,8 @@
-<a class="list-group-item clearfix documentDiv" (click)="onClick()" style="cursor: pointer">
-  <!-- Display document name here -->
+<a
+  class="list-group-item clearfix documentDiv"
+  [routerLink]="[document.id]"
+  routerLinkActive="active"
+  style="cursor: pointer"
+>
   <p>{{ document.name }}</p>
 </a>

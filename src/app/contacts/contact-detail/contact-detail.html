@@ -5,8 +5,8 @@
         <h3 class="panel-title">{{ contact.name }}</h3>
       </div>
       <div class="col-xs-12 text-right">
-        <a class="btn btn-info">Edit</a>
-        <a class="btn btn-danger" style="margin-left: 5px">Delete</a>
+        <a class="btn btn-info" [routerLink]="['edit']">Edit</a>
+        <a class="btn btn-danger" style="margin-left: 5px" (click)="onDelete()">Delete</a>
       </div>
 
       <div class="col-xs-12">

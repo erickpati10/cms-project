@@ -20,6 +20,9 @@ import { MessageList } from './messages/message-list/message-list';
 import { FormsModule } from '@angular/forms';
 import { DropdownDirective } from './dropdown.directive';
 import { MessageService } from './messages/message.service';
+import { AppRoutingModule } from './app-routing.module';
+import { DocumentEdit } from './documents/document-edit/document-edit';
+import { ContactEdit } from './contacts/contact-edit/contact-edit';
 
 @NgModule({
   declarations: [
@@ -38,8 +41,10 @@ import { MessageService } from './messages/message.service';
     MessageEdit,
     MessageList,
     DropdownDirective,
+    DocumentEdit,
+    ContactEdit,
   ],
-  imports: [BrowserModule, RouterModule, CommonModule, FormsModule],
+  imports: [BrowserModule, RouterModule, CommonModule, FormsModule, AppRoutingModule],
   providers: [MessageService, provideBrowserGlobalErrorListeners()],
   bootstrap: [App],
 })

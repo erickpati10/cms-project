@@ -10,9 +10,13 @@ import { ContactService } from '../contact.service';
 export class ContactList {
   contacts: Contact[] = [];
 
-  constructor(private contactService: ContactService) {}
-
-  ngOnInit() {
+  constructor(private contactService: ContactService) {
     this.contacts = this.contactService.getContacts();
+
+    this.contactService.contactChangedEvent.subscribe((contacts: Contact[]) => {
+      this.contacts = contacts;
+    });
   }
+
+  ngOnInit() {}
 }
