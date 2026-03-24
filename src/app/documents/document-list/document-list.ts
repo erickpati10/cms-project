@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Document } from '../document.model';
 import { DocumentService } from '../document.service';
 import { Subscription } from 'rxjs';
@@ -11,22 +11,22 @@ import { Subscription } from 'rxjs';
 })
 export class DocumentList implements OnInit, OnDestroy {
   documents: Document[] = [];
-  private subscription: Subscription;
+  subscription: Subscription;
 
-  constructor(private documentService: DocumentService) {
-    this.documents = this.documentService.getDocuments();
-
-    this.documentService.documentChangedEvent.subscribe((documentsList: Document[]) => {
-      this.documents = documentsList;
-    });
-  }
+  constructor(
+    private documentService: DocumentService,
+    private cd: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
     this.subscription = this.documentService.documentChangedEvent.subscribe(
-      (documentsList: Document[]) => {
-        this.documents = documentsList;
+      (documents: Document[]) => {
+        this.documents = documents.slice();
+        this.cd.detectChanges();
       },
     );
+
+    this.documentService.getDocuments();
   }
 
   ngOnDestroy(): void {

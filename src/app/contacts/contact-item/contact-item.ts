@@ -14,6 +14,6 @@ export class ContactItem {
   constructor(private contactService: ContactService) {}
 
   onClick() {
-    this.contactService.contactSelected.emit(this.contact);
+    this.contactService.contactSelected.next(this.contact);
   }
 }

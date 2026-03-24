@@ -1,4 +1,4 @@
-import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { App } from './app';
@@ -23,6 +23,8 @@ import { MessageService } from './messages/message.service';
 import { AppRoutingModule } from './app-routing.module';
 import { DocumentEdit } from './documents/document-edit/document-edit';
 import { ContactEdit } from './contacts/contact-edit/contact-edit';
+import { ContactsFilterPipe } from './contacts/contacts-filter-pipe';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -43,9 +45,17 @@ import { ContactEdit } from './contacts/contact-edit/contact-edit';
     DropdownDirective,
     DocumentEdit,
     ContactEdit,
+    ContactsFilterPipe,
   ],
-  imports: [BrowserModule, RouterModule, CommonModule, FormsModule, AppRoutingModule],
-  providers: [MessageService, provideBrowserGlobalErrorListeners()],
+  imports: [
+    BrowserModule,
+    RouterModule,
+    CommonModule,
+    FormsModule,
+    HttpClientModule,
+    AppRoutingModule,
+  ],
+  providers: [MessageService],
   bootstrap: [App],
 })
 export class AppModule {}

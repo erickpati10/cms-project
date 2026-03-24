@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Contact } from '../contact.model';
 import { ContactService } from '../contact.service';
 import { Subscription } from 'rxjs';
@@ -12,23 +12,26 @@ import { Subscription } from 'rxjs';
 export class ContactList implements OnInit, OnDestroy {
   contacts: Contact[] = [];
   subscription: Subscription;
+  term: string = '';
 
-  constructor(private contactService: ContactService) {
-    this.contacts = this.contactService.getContacts();
-
-    this.contactService.contactChangedEvent.subscribe((contacts: Contact[]) => {
-      this.contacts = contacts;
-    });
-  }
+  constructor(
+    private contactService: ContactService,
+    private cd: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
-    this.contacts = this.contactService.getContacts();
-
     this.subscription = this.contactService.contactChangedEvent.subscribe(
       (contactsList: Contact[]) => {
-        this.contacts = contactsList;
+        this.contacts = contactsList.slice();
+        this.cd.detectChanges();
       },
     );
+
+    this.contactService.getContacts();
+  }
+
+  search(value: string) {
+    this.term = value;
   }
 
   ngOnDestroy(): void {
