@@ -42,7 +42,7 @@ export class ContactService {
       );
   }
 
-  getContact(id: string): Contact {
+  getContact(id: string): Contact | null {
     for (const contact of this.contacts) {
       if (contact.id === id) {
         return contact;
