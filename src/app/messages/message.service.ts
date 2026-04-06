@@ -19,12 +19,11 @@ export class MessageService {
 
   getMessages(): void {
     this.http
-      .get<Message[]>('https://cms-project-fece6-default-rtdb.firebaseio.com/messages.json')
+      .get<{ message: string; messages: Message[] }>('http://localhost:3000/messages')
       .subscribe(
-        (messages: Message[]) => {
-          this.messages = messages ? messages : [];
-          this.maxMessageId = this.getMaxId();
-          this.messageChangedEvent.next(this.messages.slice());
+        (responseData) => {
+          this.messages = responseData.messages ? responseData.messages : [];
+          this.sortAndSend();
         },
         (error: any) => {
           console.error(error);
@@ -32,7 +31,7 @@ export class MessageService {
       );
   }
 
-  getMessage(id: string): Message {
+  getMessage(id: string): Message | null {
     for (const message of this.messages) {
       if (message.id === id) {
         return message;
@@ -41,44 +40,99 @@ export class MessageService {
     return null;
   }
 
-  getMaxId(): number {
-    let maxId = 0;
-
-    for (const message of this.messages) {
-      const currentId = parseInt(message.id, 10);
-      if (currentId > maxId) {
-        maxId = currentId;
-      }
+  addMessage(newMessage: Message) {
+    if (!newMessage) {
+      return;
     }
 
-    return maxId;
-  }
-
-  storeMessages() {
-    const messagesJson = JSON.stringify(this.messages);
+    newMessage.id = '';
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
 
     this.http
-      .put('https://cms-project-fece6-default-rtdb.firebaseio.com/messages.json', messagesJson, {
-        headers: headers,
-      })
-      .subscribe(() => {
-        this.messageChangedEvent.next(this.messages.slice());
-      });
+      .post<{
+        message: string;
+        messageObj: Message;
+      }>('http://localhost:3000/messages', newMessage, { headers: headers })
+      .subscribe(
+        (responseData) => {
+          this.messages.push(responseData.messageObj);
+          this.sortAndSend();
+        },
+        (error: any) => {
+          console.error(error);
+        },
+      );
   }
 
-  addMessage(newMessage: Message) {
-    if (!newMessage) {
+  updateMessage(originalMessage: Message, newMessage: Message) {
+    if (!originalMessage || !newMessage) {
       return;
     }
 
-    this.maxMessageId++;
-    newMessage.id = this.maxMessageId.toString();
-    this.messages.push(newMessage);
+    const pos = this.messages.findIndex((m) => m.id === originalMessage.id);
 
-    this.storeMessages();
+    if (pos < 0) {
+      return;
+    }
+
+    newMessage.id = originalMessage.id;
+    newMessage._id = originalMessage._id;
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+
+    this.http
+      .put('http://localhost:3000/messages/' + originalMessage.id, newMessage, {
+        headers: headers,
+      })
+      .subscribe(
+        () => {
+          this.messages[pos] = newMessage;
+          this.sortAndSend();
+        },
+        (error: any) => {
+          console.error(error);
+        },
+      );
+  }
+
+  deleteMessage(message: Message) {
+    if (!message) {
+      return;
+    }
+
+    const pos = this.messages.findIndex((m) => m.id === message.id);
+
+    if (pos < 0) {
+      return;
+    }
+
+    this.http.delete('http://localhost:3000/messages/' + message.id).subscribe(
+      () => {
+        this.messages.splice(pos, 1);
+        this.sortAndSend();
+      },
+      (error: any) => {
+        console.error(error);
+      },
+    );
+  }
+
+  private sortAndSend() {
+    this.messages.sort((a: Message, b: Message) => {
+      if (a.subject < b.subject) {
+        return -1;
+      }
+      if (a.subject > b.subject) {
+        return 1;
+      }
+      return 0;
+    });
+
+    this.messageChangedEvent.next(this.messages.slice());
   }
 }

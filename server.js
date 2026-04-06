@@ -5,19 +5,18 @@ var http = require('http');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var mongoose = require('mongoose');
 
 // import the routing file to handle the default (index) route
 var index = require('./server/routes/app');
-
-// ... ADD CODE TO IMPORT YOUR ROUTING FILES HERE ...
-
 const messageRoutes = require('./server/routes/messages');
 const contactRoutes = require('./server/routes/contacts');
-const documentsRoutes = require('./server/routes/documents');
+const documentRoutes = require('./server/routes/documents');
 
 var app = express(); // create an instance of express
 
 // Tell express to use the following parsers for POST data
+// MUST be before route definitions so request bodies are parsed
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
@@ -25,10 +24,9 @@ app.use(
   }),
 );
 app.use(cookieParser());
-
 app.use(logger('dev')); // Tell express to use the Morgan logger
 
-// Add support for CORS
+// Add support for CORS — must also be before routes
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -36,21 +34,28 @@ app.use((req, res, next) => {
   next();
 });
 
-// Tell express to use the specified director as the
+// Establish a connection to the mongo database
+mongoose
+  .connect('mongodb://127.0.0.1:27017/cms')
+  .then(() => {
+    console.log('Connected to database!');
+  })
+  .catch((err) => {
+    console.log('Connection failed: ' + err);
+  });
+
+// Tell express to use the specified directory as the
 // root directory for your web site
 app.use(express.static(path.join(__dirname, 'dist/cms/browser')));
 
-// Tell express to map the default route ('/') to the index route
+// Map URL routes to routing files
 app.use('/', index);
-
-// ... ADD YOUR CODE TO MAP YOUR URL'S TO ROUTING FILES HERE ...
-
 app.use('/messages', messageRoutes);
 app.use('/contacts', contactRoutes);
-app.use('/documents', documentsRoutes);
+app.use('/documents', documentRoutes);
 
 // Tell express to map all other non-defined routes back to the index page
-app.get('/{*splat}', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist/cms/index.html'));
 });
 

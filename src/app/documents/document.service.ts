@@ -18,23 +18,11 @@ export class DocumentService {
 
   getDocuments(): void {
     this.http
-      .get<Document[]>('https://cms-project-fece6-default-rtdb.firebaseio.com/documents.json')
+      .get<{ message: string; documents: Document[] }>('http://localhost:3000/documents')
       .subscribe(
-        (documents: Document[]) => {
-          this.documents = documents ? documents : [];
-          this.maxDocumentId = this.getMaxId();
-
-          this.documents.sort((a: Document, b: Document) => {
-            if (a.name < b.name) {
-              return -1;
-            }
-            if (a.name > b.name) {
-              return 1;
-            }
-            return 0;
-          });
-
-          this.documentChangedEvent.next(this.documents.slice());
+        (responseData) => {
+          this.documents = responseData.documents ? responseData.documents : [];
+          this.sortAndSend();
         },
         (error: any) => {
           console.error(error);
@@ -42,7 +30,7 @@ export class DocumentService {
       );
   }
 
-  getDocument(id: string): Document {
+  getDocument(id: string): Document | null {
     for (const document of this.documents) {
       if (document.id === id) {
         return document;
@@ -51,44 +39,31 @@ export class DocumentService {
     return null;
   }
 
-  getMaxId(): number {
-    let maxId = 0;
-
-    for (const document of this.documents) {
-      const currentId = parseInt(document.id, 10);
-      if (currentId > maxId) {
-        maxId = currentId;
-      }
+  addDocument(newDocument: Document) {
+    if (!newDocument) {
+      return;
     }
-    return maxId;
-  }
 
-  storeDocuments() {
-    const documentsJson = JSON.stringify(this.documents);
+    newDocument.id = '';
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
 
     this.http
-      .put('https://cms-project-fece6-default-rtdb.firebaseio.com/documents.json', documentsJson, {
-        headers: headers,
-      })
-      .subscribe(() => {
-        this.documentChangedEvent.next(this.documents.slice());
-      });
-  }
-
-  addDocument(newDocument: Document) {
-    if (!newDocument) {
-      return;
-    }
-
-    this.maxDocumentId++;
-    newDocument.id = this.maxDocumentId.toString();
-    this.documents.push(newDocument);
-
-    this.storeDocuments();
+      .post<{
+        message: string;
+        document: Document;
+      }>('http://localhost:3000/documents', newDocument, { headers: headers })
+      .subscribe(
+        (responseData) => {
+          this.documents.push(responseData.document);
+          this.sortAndSend();
+        },
+        (error: any) => {
+          console.error(error);
+        },
+      );
   }
 
   updateDocument(originalDocument: Document, newDocument: Document) {
@@ -96,15 +71,32 @@ export class DocumentService {
       return;
     }
 
-    const pos = this.documents.indexOf(originalDocument);
+    const pos = this.documents.findIndex((d) => d.id === originalDocument.id);
+
     if (pos < 0) {
       return;
     }
 
     newDocument.id = originalDocument.id;
-    this.documents[pos] = newDocument;
+    newDocument._id = originalDocument._id;
 
-    this.storeDocuments();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+
+    this.http
+      .put('http://localhost:3000/documents/' + originalDocument.id, newDocument, {
+        headers: headers,
+      })
+      .subscribe(
+        () => {
+          this.documents[pos] = newDocument;
+          this.sortAndSend();
+        },
+        (error: any) => {
+          console.error(error);
+        },
+      );
   }
 
   deleteDocument(document: Document) {
@@ -112,13 +104,34 @@ export class DocumentService {
       return;
     }
 
-    const pos = this.documents.indexOf(document);
+    const pos = this.documents.findIndex((d) => d.id === document.id);
+
     if (pos < 0) {
       return;
     }
 
-    this.documents.splice(pos, 1);
+    this.http.delete('http://localhost:3000/documents/' + document.id).subscribe(
+      () => {
+        this.documents.splice(pos, 1);
+        this.sortAndSend();
+      },
+      (error: any) => {
+        console.error(error);
+      },
+    );
+  }
 
-    this.storeDocuments();
+  private sortAndSend() {
+    this.documents.sort((a: Document, b: Document) => {
+      if (a.name < b.name) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    });
+
+    this.documentChangedEvent.next(this.documents.slice());
   }
 }

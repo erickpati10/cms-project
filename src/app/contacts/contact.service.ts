@@ -18,23 +18,11 @@ export class ContactService {
 
   getContacts(): void {
     this.http
-      .get<Contact[]>('https://cms-project-fece6-default-rtdb.firebaseio.com/contacts.json')
+      .get<{ message: string; contacts: Contact[] }>('http://localhost:3000/contacts')
       .subscribe(
-        (contacts: Contact[]) => {
-          this.contacts = contacts ? contacts : [];
-          this.maxContactId = this.getMaxId();
-
-          this.contacts.sort((a: Contact, b: Contact) => {
-            if (a.name < b.name) {
-              return -1;
-            }
-            if (a.name > b.name) {
-              return 1;
-            }
-            return 0;
-          });
-
-          this.contactChangedEvent.next(this.contacts.slice());
+        (responseData) => {
+          this.contacts = responseData.contacts ? responseData.contacts : [];
+          this.sortAndSend();
         },
         (error: any) => {
           console.error(error);
@@ -51,45 +39,31 @@ export class ContactService {
     return null;
   }
 
-  getMaxId(): number {
-    let maxId = 0;
-
-    for (const contact of this.contacts) {
-      const currentId = parseInt(contact.id, 10);
-      if (currentId > maxId) {
-        maxId = currentId;
-      }
+  addContact(newContact: Contact) {
+    if (!newContact) {
+      return;
     }
 
-    return maxId;
-  }
-
-  storeContacts() {
-    const contactsJson = JSON.stringify(this.contacts);
+    newContact.id = '';
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
 
     this.http
-      .put('https://cms-project-fece6-default-rtdb.firebaseio.com/contacts.json', contactsJson, {
-        headers: headers,
-      })
-      .subscribe(() => {
-        this.contactChangedEvent.next(this.contacts.slice());
-      });
-  }
-
-  addContact(newContact: Contact) {
-    if (!newContact) {
-      return;
-    }
-
-    this.maxContactId++;
-    newContact.id = this.maxContactId.toString();
-    this.contacts.push(newContact);
-
-    this.storeContacts();
+      .post<{
+        message: string;
+        contact: Contact;
+      }>('http://localhost:3000/contacts', newContact, { headers: headers })
+      .subscribe(
+        (responseData) => {
+          this.contacts.push(responseData.contact);
+          this.sortAndSend();
+        },
+        (error: any) => {
+          console.error(error);
+        },
+      );
   }
 
   updateContact(originalContact: Contact, newContact: Contact) {
@@ -97,15 +71,32 @@ export class ContactService {
       return;
     }
 
-    const pos = this.contacts.indexOf(originalContact);
+    const pos = this.contacts.findIndex((c) => c.id === originalContact.id);
+
     if (pos < 0) {
       return;
     }
 
     newContact.id = originalContact.id;
-    this.contacts[pos] = newContact;
+    newContact._id = originalContact._id;
 
-    this.storeContacts();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+
+    this.http
+      .put('http://localhost:3000/contacts/' + originalContact.id, newContact, {
+        headers: headers,
+      })
+      .subscribe(
+        () => {
+          this.contacts[pos] = newContact;
+          this.sortAndSend();
+        },
+        (error: any) => {
+          console.error(error);
+        },
+      );
   }
 
   deleteContact(contact: Contact) {
@@ -113,13 +104,34 @@ export class ContactService {
       return;
     }
 
-    const pos = this.contacts.indexOf(contact);
+    const pos = this.contacts.findIndex((c) => c.id === contact.id);
+
     if (pos < 0) {
       return;
     }
 
-    this.contacts.splice(pos, 1);
+    this.http.delete('http://localhost:3000/contacts/' + contact.id).subscribe(
+      () => {
+        this.contacts.splice(pos, 1);
+        this.sortAndSend();
+      },
+      (error: any) => {
+        console.error(error);
+      },
+    );
+  }
 
-    this.storeContacts();
+  private sortAndSend() {
+    this.contacts.sort((a: Contact, b: Contact) => {
+      if (a.name < b.name) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    });
+
+    this.contactChangedEvent.next(this.contacts.slice());
   }
 }

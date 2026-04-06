@@ -1,4 +1,5 @@
 export class Document {
+  public _id?: string;
   public id: string;
   public name: string;
   public description: string;
@@ -11,7 +12,9 @@ export class Document {
     description: string,
     url: string,
     children: Document[] = [],
+    _id?: string,
   ) {
+    this._id = _id;
     this.id = id;
     this.name = name;
     this.description = description;
